@@ -1,0 +1,26 @@
+Usage looks like this:
+
+	GenerateEnum ge = new GenerateEnum("Animal", "SomeNamespace");
+
+	//Add entries to the enum
+	ge.AddEnumEntry("Cow");
+	ge.AddEnumEntry("Pig", 32);
+	ge.AddEnumEntry("Duck");
+	ge.WriteToFile(@"C:\temp");
+	
+Output looks like this:
+	File name: C:\temp\Animal.cs
+	File Contents:
+
+		namespace SomeNamespace
+		{
+			
+			public enum Animal
+			{
+				Cow,
+				Pig = 32,
+				Duck,
+			}
+		}
+
+
