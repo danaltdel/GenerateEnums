@@ -13,24 +13,28 @@ namespace GenerateEnums
     {
         #region Members
         // the name of the enum
-        private string _enumTypeName;
+        private string _enumName;
         // the list of entries within the enum
-        private List<EnumEntry> _entries = new System.Collections.Generic.List<EnumEntry>();
+        private List<EnumEntry> _entries = new List<EnumEntry>();
 
         private int _enumValueDefault = -1;
 
         private bool _autoResovleConflicts;
+
+        private string _namespace;
         #endregion
 
         #region Constructor
         /// <summary>
-        /// The name of the enum you wish to create
+        /// 
         /// </summary>
-        /// <param name="enumTypeName"></param>
-        public GenerateEnum(string enumTypeName, bool autoResolveConflicts = false)
+        /// <param name="enumTypeName">The name of the enum you wish to create</param>
+        /// <param name="autoResolveConflicts"></param>
+        public GenerateEnum(string enumTypeName, string myNamespace, bool autoResolveConflicts = false)
         {
-            _enumTypeName = RemoveInvalidClassCharacters(enumTypeName);
+            _enumName = RemoveInvalidClassCharacters(enumTypeName);
             _autoResovleConflicts = autoResolveConflicts;
+            _namespace = myNamespace;
         }
         #endregion
 
@@ -82,7 +86,7 @@ namespace GenerateEnums
                 { return (e.EnumName == potentialEnumEntry.EnumName) || ((e.EnumValue == potentialEnumEntry.EnumValue) && (e.EnumValue != _enumValueDefault)); })))
             {
                 if (!_autoResovleConflicts)
-                    throw new ArgumentException(string.Format("Enum name {0} or value {1} already exist", enumName, enumValue));
+                    throw new ArgumentException(string.Format("Enum name {0} or value {1} already defined", enumName, enumValue));
                 else
                 {
                     Regex r = new Regex("_[0-9]+$");
@@ -110,13 +114,13 @@ namespace GenerateEnums
         /// <summary>
         /// Generates a class file for each enum in the output 
         /// </summary>
-        public void WriteEnumToFile(string namespaceToUse, string outputPath)
+        public void WriteToFile(string outputPath)
         {
             CodeDomProvider provider = new CSharpCodeProvider();
-            var codenamespace = new CodeNamespace(namespaceToUse);
+            var codenamespace = new CodeNamespace(_namespace);
             var compileUnit = new CodeCompileUnit();
            
-            var codeClass = new CodeTypeDeclaration(_enumTypeName) { IsEnum = true };
+            var codeClass = new CodeTypeDeclaration(_enumName) { IsEnum = true };
 
             foreach (var entry in _entries)
             {
@@ -153,7 +157,7 @@ namespace GenerateEnums
             codenamespace.Types.Add(codeClass);
             compileUnit.Namespaces.Add(codenamespace);
 
-            using (TextWriter textWriter = new StreamWriter(string.Format(@"{0}\{1}.cs", outputPath, _enumTypeName)))
+            using (TextWriter textWriter = new StreamWriter(string.Format(@"{0}\{1}.cs", outputPath, _enumName)))
             {
                 var options = new CodeGeneratorOptions { BracingStyle = "C", BlankLinesBetweenMembers = false };
                 provider.GenerateCodeFromNamespace(codenamespace, textWriter, options);
